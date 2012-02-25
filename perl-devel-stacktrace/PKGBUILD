@@ -13,7 +13,15 @@ md5sums=('72ba07f2dc0331d8ce3c028cc66cf20d')
 
 build() {
   cd  $startdir/src/Devel-StackTrace-$pkgver
+  
+  # Setting these env variables overwrites any command-line-options we don't want...
+  export PERL_MM_USE_DEFAULT=1 PERL_AUTOINSTALL=--skipdeps \
+    PERL_MM_OPT="INSTALLDIRS=vendor DESTDIR='$pkgdir'" \
+    PERL_MB_OPT="--installdirs vendor --destdir '$pkgdir'" \
+    MODULEBUILDRC=/dev/null
+  # Get $archname into the environment.
   eval `perl -V:archname`
+  
   # Force module installation to "current" perl directories.
   /usr/bin/perl Makefile.PL \
       INSTALLARCHLIB=/usr/lib/perl5/current/${archname} \
@@ -21,7 +29,9 @@ build() {
       INSTALLSITEARCH=/usr/lib/perl5/site_perl/current/${archname}
   /usr/bin/make || return 1
   /usr/bin/make DESTDIR=$startdir/pkg install
-  # remove *.pod, .packlist:
+  
+  # Remove *.pod, .packlist.
   /usr/bin/find $startdir/pkg -name '.packlist' -exec rm  '{}' \;
   /usr/bin/find $startdir/pkg -name '*.pod' -exec rm  '{}' \;
 }
+
